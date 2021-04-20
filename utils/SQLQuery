@@ -1,0 +1,14 @@
+# 建立用户信息Temp表
+insert into UserTemp select user_id from account_profile_awardhistory_User
+# 查询是否有重复获奖记录
+select *, COUNT(*) from account_profile_competitionrecord WHERE User_id IN (select user_id from UserTemp) GROUP BY User_id HAVING count(User_id) > 1
+# 查询是否有重复荣誉记录
+select *, COUNT(*) from account_profile_honortitle WHERE User_id IN (select user_id from UserTemp) GROUP BY User_id HAVING count(User_id) > 1
+# 查询是否有重复论文发表
+select *, COUNT(*) from account_profile_paperrecord WHERE User_id IN (select user_id from UserTemp) GROUP BY User_id HAVING count(User_id) > 1
+# 查询是否有重复专利记录
+select *, COUNT(*) from account_profile_patentrecord WHERE User_id IN (select user_id from UserTemp) GROUP BY User_id HAVING count(User_id) > 1
+# 查询是否有重复研究项目
+select *, COUNT(*) from account_profile_researchproject WHERE User_id IN (select user_id from UserTemp) GROUP BY User_id HAVING count(User_id) > 1
+# 查询是否有重复专著发表
+select *, COUNT(*) from account_profile_publishrecord WHERE User_id IN (select user_id from UserTemp) GROUP BY User_id HAVING count(User_id) > 1
