@@ -6,7 +6,7 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "AwardSystem.settings")
 django.setup()
 
-from apps.grade_info import LessonInfo, MajorInfo, SchoolYearInfo
+from apps.grade_info.models import LessonInfo, MajorInfo, SchoolYearInfo
 
 s = set()
 

@@ -37,6 +37,13 @@ orderChoice = {
     "其它": "o"
 }
 
+stateChoice = {
+    "第一层次": "f",
+    "第二层次": "s",
+    "第三层次": "t",
+    "其他": "o"
+}
+
 for row in range(1, paper_table.nrows):
     line = paper_table.row_values(row)
     user = User.objects.get(student_id=line[0], isPostgraduate=True)
@@ -69,7 +76,11 @@ for row in range(1, paper_table.nrows):
             auth = "t"
     else:
         auth = "t"
+    if line[14] == "":
+        state = "o"
+    else:
+        state = stateChoice[line[14]]
     PaperRecord.objects.create(User=user, name=title, magzineName=line[11], authOrder=auth,
                                postStatus=publishStatus, totalReference=totalReference,
-                               conferenceChoice=conferenceOption, publishDate=publishDate, SchoolYear=schoolYear)
+                               conferenceChoice=conferenceOption, publishDate=publishDate, SchoolYear=schoolYear, paperState=state)
     print(row)

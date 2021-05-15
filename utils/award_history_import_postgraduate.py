@@ -18,7 +18,7 @@ for book in range(0, user_table.nsheets):
     users = user_table.sheet_by_index(book)
     for row in range(1, users.nrows):
         line = users.row_values(row)
-        if not line[1]:
+        if line[1] == "":
             continue
         userID = User.objects.get(student_id=line[0], isPostgraduate=True)
         schoolYear = SchoolYearInfo.objects.get(schoolYearStart__lte=line[7], schoolYearEnd__gt=line[7])
