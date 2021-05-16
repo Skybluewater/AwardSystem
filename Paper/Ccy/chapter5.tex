@@ -1,0 +1,158 @@
+%%
+% The BIThesis Template for Bachelor Graduation Thesis
+%
+% 北京理工大学毕业设计（论文）第一章节 —— 使用 XeLaTeX 编译
+%
+% Copyright 2020 Spencer Woo
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+%
+% The Current Maintainer of this work is Spencer Woo.
+%
+% 第一章节
+
+\chapter{实验过程}
+
+\section{XGBoost}
+
+首先介绍XGBoost方法。
+
+XGBoost是一种常用的提升树模型算法，它在推荐系统和分类问题中有着优异的效果，XGBoost基于GBDT（梯度提升决策树）实现，它和GBDT相同都是Boosting算法一种，Boosting算法的思想是将许多弱分类器如CART回归树模型等集成在一起，形成一个强分类器。
+
+\subsection{训练集、测试集与验证集划分}
+
+在我们的系统中，首先使用了XGBoost单独进行分类并查看分类的准确率、auc等评价指标，并且将此作为baseline，同时我们使用Hyperopt对XGBoost进行自动化调参，在XGBoost的实验过程中，我们首先对数据集进行了划分，使用常见的经验公式对数据集进行了8-2划分，划分后的训练集共100条数据，测试集共26条数据。
+
+接下来就是对XGBoost进行建模，XGBoost使用xgboost包实现调用，在调用XGBoost的过程中，我们使用了K-fold的方法进行了5折交叉，通过调用XGBoost自带的cv函数实现比sklearn中kfold split更快的交叉运算。在将训练集和测试集输入XGBoost之前，首先通过xgb自带的DMatrix格式转化为XGBoost自有格式并且进行了填空处理，这样的优点是运算速度更快。
+
+\subsection{Hyperopt自动化调参}
+
+然后我们通过引入hyperopt定义目标函数，hyperopt是一个基于Python实现的Sklearn超参数优化类库，一般而言使用hyperopt有四个主要部分，分别是定义最小化/最大化的目标函数作为优化目标；其次是定义搜索空间，也就是超参数的；接下来定义存储搜索过程中所有点组合以及效果的方法；最后要确定在搜索过程中要使用的搜索算法。
+
+我们在实验过程中对XGBoost选择的目标函数有两种，分别是验证集的mlogloss以及auc值，对于mlogloss而言，我们需要对其进行最小化，而auc则是进行最大化搜索；定义的参数搜索空间如下：
+
+
+
+
+其中max\_depth是决策树的最大深度，在这里搜索空间从5到30以1递增，
+learning\_rate是学习率，学习率从0.01到0.5以0.01递增，
+n\_estimators是决策树的数量，
+gamma是控制后剪枝的参数，
+min\_child\_weight是控制孩子节点当中最小的节点的样本权重和，如果叶子节点的样本权重和小于min\_child\_weight则对叶子节点拆分结束，在现行的回归模型中，这个参数的主要作用是控制过拟合，它代表了建立模型需要的最小样本数；
+subsample同样是用于控制模型过拟合的一个参数，它的含义是用于训练模型的子样本在总样本中的比例；
+colsample\_bytree是在建立决策树时对特征随机采样的比例；
+booster使用的是gbtree，也就是树模型；
+tree\_method表示计算时使用的树方法，这里选择的是准确的计算值，同样可以使用近似计算来加快运算速度。
+
+在定义搜索空间后定义目标函数，这里的目标函数代码如下：
+
+
+
+
+可以看到这里使用的是test-mlogloss-mean作为优化函数进行优化，每次选择test-mlogloss-mean的最小值返回给hyperopt进行效果验证，它的返回值来自于xgboost的k-fold方法，同时为了防止过拟合的现象使用了early\_stopping方法在验证集验证，使用的验证函数同样是mlogloss
+
+同时在这里需要特别注意的一点在于XGB是无法使用auc作为eval\_metric，在XGBoost的issue中可以看到auc目前不支持在XGB上使用。
+
+除此以外对于XGBoost模型分别在两种不同编码格式的数据集上进行了测试，首先我们在one-hot encoding的数据集上进行了测试。
+
+\subsection{数据编码方式效果对比}
+
+根据XGBoost模型的文档，它推荐我将所有的类别特征转化为独热编码，XGBoost对于特征的值仅接受数字类型的特征，因此必须进行独热编码。 但是如果有类似的数字特征变量并且对类别使用数字占位符（例如，{男，女，未知}分别为{1,2,3}），则对于XGBoost的学习而言这些特征是不能正确表示的，因为这些特征是存在偏序关系的，而原始类别没有与之关联的任何固有顺序，但是XGBoost模型可能会错误的学习数值带有的偏序关系而导致误差。
+
+所以我们考虑将论文的作者顺序等通过one-hot encoding转化为独热编码后输入XGBoost，虽然也有人指出one-hot encoding可以将距离计算变得更为合理，但对于离散特征而言，不需要使用one-hot encoding即可较好的进行距离计算，对于某些基于树的算法而言，变量的处理并不是基于向量空间而只是作为类别符号，其不存在偏序关系故而不需要进行one-hot encoding。而独热编码反而增加了决策树的深度。
+
+hyperopt的默认搜索算法是tpe，这是一种类似于遗传算法的搜索算法，它是一种启发式的最优化方法。
+
+首先将one-hot encoding后的特征输入XGBoost中通过hyperopt自动化调参，数据集共有118维特征，学习目标为多分类(multi:softmax)，验证集使用目标函数为mlogloss，测试后的最优参数下测试集的loss为0.41，而在此情况下训练集的loss为0.21，可以看到XGBoost对于训练集出现了一定程度的过拟合情况。同时在这种情况下gamma值为0.84，学习率为0.45，树的最大深度为12，subsample取值为1，这里是值得注意的，因为subsample为控制过拟合的参数，它使用全部训练集输入对XGBoost的树模型进行训练在一定程度上也导致了测试集的loss较差，特征随机采样比例为0.79，叶子节点的最小权重和为2，决策树个数为14。
+
+使用最优参数对XGBoost模型进行训练，得到的CrossValMean为0.78，准确率为0.61，可以看到这个结果不甚理想，同时特征重要性结果如下：
+
+
+
+
+可以看到其中最为重要的特征是未分类课的成绩，其次是发表论文的数量，然后是选修课成绩、总加权平均成绩以及未分类课学分，然后是其他类型奖励的数量、以及论文的层次等。综上可以看到在整个过程中对模型影响较大的因素为成绩因素和论文质量。
+
+
+
+
+这是其中一棵生成树的图片，可以看到树的深度为6，首先分裂的节点是论文数量。
+
+接下来我们又对使用Label Encoding的编码数据集进行了测试，测试的结果大大出乎了我们的意料，在hyperopt优化参数不变的情况下，Label Encoding的效果远好于One-hot编码后的效果，虽然XGBoost的文档推荐使用One-hot编码，而且原理上One-hot不影响决策树的效果，但是实际上XGBoost在小量数据上对大量特征的分裂决策效果依然不是很好。
+
+Label Encoding的数据集中特征向量的维数为61，经过测试XGBoost在Label Encoding数据集上的最优参数为特征随机采样比例0.45，gamma为0.99，学习率为0.17，最大深度为23，最小叶子节点权重和为2.0，决策树个数为26，决策树模型训练样本比例subsample=0.7，在最优参数下进行模型训练得到的FinalCrossMean为0.79，虽然和使用One-hot encoding的结果相差不大，但是实际上模型在测试集的准确率提升到了96%，远高于独热编码后的结果，特征重要性排序如下：
+
+
+
+
+可以看到参与训练的特征数量明显变多，虽然成绩特征依然重要，但是最重要的特征从未分类加权平均成绩变为选修课加权平均成绩，总成绩的重要性基本不变，接下来第一篇论文的论文层次和论文聚类的标签也对结果有重要作用，除此以外第一篇论文的作者排序以及发表论文的总数量等起次等作用。未分类课的学分以及总学分在特征重要性中也有一定比重。但是对于使用独热编码的特征，专利、研究项目等很多特征并没有考虑在内。而在Label- Encoding的方法下，专利和研究项目的数量、其他成果的数量、荣誉等级和荣誉数量等都在模型决策树构建中发挥作用，除此以外模型对第二篇论文的情况也纳入了考虑范围，包括第二篇论文的作者顺序、期刊等级以及论文层次等。
+
+所以综上可以看出One-hot encoding的模型相比于Label encoding的模型效果相差甚远，可能原因是One-hot的特征矩阵较为稀疏，模型的迭代次数不足，而且模型在自动化调参过程中subsample比例过高导致模型出现了比较严重的过拟合问题，以上都是未来可以进行实验和改进的方向。
+
+在构建XGBoost单独进行预测后，我们也考虑将XGBoost的决策树输出作为新的特征与其他简单模型融合，可以考虑使用XGBoost+贝叶斯或者XGBoost+LR逻辑回归等。
+
+\section{XGBoost与逻辑回归融合}
+
+我们同样进行了对比实验，以上述表现效果较好的Label-Encoding XGBoost模型作为新特征的全部或者一部分分别进行实验。
+
+首先是对XGBoost决策树的特征进行构建，特征构建的原理是由于XGBoost的决策树存在多个输出，对于一条数据而言它的权值会由不同的叶子节点输出，所以将所有的叶子节点视为0-1编码的one-hot 向量，即可构建一个长度=叶子节点总数的特征向量。
+
+对叶子节点输出进行获取的方法是XGB自带的apply方法，apply的结果是决策树对应的叶子节点值，若没有叶子节点(max\_length = 1)，那么此值为0，否则>=1的整数，所以先去除没有叶子节点的决策树，通过自定义的get\_cols\_del函数获取apply后形成的DataFrame中需要删除的列标号，然后用del\_cols函数删除DataFrame中对应的无信息的列(全0)，再通过one-hot encoding的形式自定义一个One-hot Label Encoder进行one-hot编码后得到对应的稀疏特征矩阵，这样可以在一定程度上压缩特征空间的大小，并且能够提取高维的特征交互信息，然后将此结果输入一个简单的线性分类模型中，同时还可以省去归一化的步骤。
+
+将构建好的特征输入到一个简单的逻辑回归分类器当中，此时输出经过one-hot encoding后的特征共98维，略微少于完全使用one-hot的118维，在使用默认参数进行训练后对测试集进行了准确率测试，测试结果与XGBoost相同但是auc值高于单独使用XGBoost结果0.25，此时auc值为0.97，虽然提升效果不明显但是在全数据集上进行准确率测试发现准确率从0.89提升到0.97，auc从0.83提升到0.963，所以逻辑回归和XGBoost决策树节点输出结果结合比较好的解决了模型的拟合问题，并且进一步提升了模型的准确率。
+
+除此以外我们还使用XGBoost决策树节点输出结果与原有特征进行融合，以此构建一个既包含高维特征交叉也包含低维特征的特征向量。同样将80%的数据用于训练20%数据用于测试，在这种情况下模型出现了一定的过拟合情况，对测试集的准确率下降到92%，auc下降到93%，但全数据集的准确率提升到98%，auc提升到98.7%，虽然提升不明显，但是无论在accuracy或者auc上均有提升，所以可以看出融合了原有低维特征和XGBoost输出高维特征的特征向量还是使结果呈现了一定的上升趋势。
+
+\section{XGBoost与贝叶斯分类器融合}
+
+那么顺着这个思路我们又进行了一系列的实验，包括将逻辑回归模型替换为Bayes分类器或SVM等并分别对它们的表现进行测试，结果如下：
+
+
+\begin{table}[htbp]
+  \linespread{1.5}
+  \zihao{5}
+  \centering
+  \caption{贝叶斯分类器效果比较}\label{贝叶斯分类器效果比较}
+  \begin{tabular}{*{5}{>{\centering\arraybackslash}p{2cm}}}
+    \hline
+        & Test-Accuracy    & Test-AUC    & Train-Accuracy   & Train-AUC    \\ \hline
+    Pure BernoulliNB    & 0.884  & 0.888 & 0.72  & 0.704  \\
+    BernoulliNB + XGBoost   & 0.923  & 0.918  & 0.83  & 0.792  \\
+    GaussianNB + XGBoost & 0.885  & 0.906  & 0.82  & 0.862  \\ 
+    MultinomialNB + XGBoost  & 0.923 & 0.918 & 0.81 & 0.818 \\ \hline
+    \end{tabular}
+\end{table}
+
+
+
+可以看到不同分布函数的贝叶斯分类器的效果不同，其中效果最好的是高斯分布的贝叶斯，这种情况出现可能和成绩、竞赛等分布符合高斯分布有关。 可以看到多项式贝叶斯模型在测试集的效果最好，但是从训练集的准确度和auc值看，可能存在欠拟合的问题，并且在整个数据集上进行测试后可以发现它整体的效果不如高斯分布贝叶斯。伯努利分布的贝叶斯与多项式贝叶斯一样在测试集上效果好但是在训练集上效果一般，同样可以考虑测试集和训练集划分的问题。单独使用贝叶斯对不包含XGB输出的效果是最差的，说明Bayes没有对高维和低维特征的融合进行较好的处理。
+
+同时我们还使用了GBDT、SVM等作为对特征融合的向量的输入模型。其中GBDT+XGBoost的效果最好，这是由于GBDT与XGBoost一样都是树模型，但是没有使用GBDT的原因是GBDT的模型较为复杂，不利于降低模型复杂度，而且训练比逻辑回归要困难得多。
+
+
+
+
+
+
+\begin{figure}[htbp]
+  \vspace{13pt} % 调整图片与上文的垂直距离
+  \centering
+  \includegraphics[]{images/bit_logo.png}
+  \caption{标题序号}\label{标题序号} % label 用来在文中索引
+\end{figure}
+
+\textcolor{blue}{公式标注应于该公式所在行的最右侧。对于较长的公式只可在符号处（+、-、*、/、$\leqslant$ $\geqslant$ 等）转行。在文中引用公式时，在标号前加“式”，如式（1-2）。阅后删除此
+段。}
+
+\textcolor{blue}{公式-示例：（阅后删除此段）}
+% 公式上下不要空行，置于同一个段落下即可，否则上下距离会出现高度不一致的问题
+\begin{equation}
+    LRI=1\ ∕\ \sqrt{1+{\left(\frac{{\mu }_{R}}{{\mu }_{s}}\right)}^{2}{\left(\frac{{\delta }_{R}}{{\delta }_{s}}\right)}^{2}}
+\end{equation}
