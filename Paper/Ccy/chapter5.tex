@@ -23,8 +23,6 @@
 
 \section{XGBoost}
 
-首先介绍XGBoost方法。
-
 XGBoost是一种常用的提升树模型算法，它在推荐系统和分类问题中有着优异的效果，XGBoost基于GBDT（梯度提升决策树）实现，它和GBDT相同都是Boosting算法一种，Boosting算法的思想是将许多弱分类器如CART回归树模型等集成在一起，形成一个强分类器。
 
 \subsection{训练集、测试集与验证集划分}
@@ -138,7 +136,14 @@ Label Encoding的数据集中特征向量的维数为61，经过测试XGBoost在
 
 
 
+\section{神经网络模型}
 
+% \subsection{DeepFM}
+
+关于神经网络模型，我们使用了DeepFM，通过FM进行自动特征交叉，并验证了算法的效果。
+
+首先对DeepFM中的DenseFeature 与 SparseFeature进行处理，DeepFM中的DenseFeature指数值类特征或类似连续或带有特定偏序关系的特征，SparseFeature一般为CategoricalFeature或类似离散数值特征。通过函数SparseFeat实现稀疏特征矩阵构造，其中DeepFM使用默认参数进行实验(
+dnn\_hidden\_units=(128, 128), l2\_reg\_linear=1e-05, l2\_reg\_embedding=1e-05, l2\_reg\_dnn=0, seed=1024, dnn\_dropout=0, dnn\_activation='relu', dnn\_use\_bn=False, task='binary'),
 
 
 \begin{figure}[htbp]
