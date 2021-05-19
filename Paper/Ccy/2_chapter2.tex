@@ -18,23 +18,27 @@
 % The Current Maintainer of this work is Spencer Woo.
 %
 % 第一章节
-
 \chapter{算法理论}
 
 \section{优化函数}
 
-\subsection{梯度下降方法}
-
 梯度下降方法是本文中主要使用的优化函数算法，它是一种用于寻找可微函数局部最小值的一阶迭代优化算法。 这个想法是在某点函数的梯度（或近似梯度）相反方向上重复执行上述步骤，因为梯度的下降方向是损失函数下降最快的方向，顺着梯度下降方向可以得到损失函数的局部最小值。相反，沿梯度方向步进将得出损失函数的局部最大值，该过程称为梯度上升。梯度下降方法包括两大类，分别是固定学习率的梯度下降算法与自适应学习率的算法。
 
-固定学习率:
+\subsection{固定学习率:}
 
 恒定学习率的代表算法有BGD、SGD、MBGD等，这三种算法的主要区别即为使用训练集中不同数量的训练数据计算损失函数的梯度。
 
 BGD(批量梯度下降)算法主要通过对整个训练集进行损失函数计算得出最优梯度，由于对训练集的每个样本都进行了梯度计算，所以BGD可以保证梯度下降方向为全局最优方向，但是在迭代过程中需要对每个参数求偏导，且在对参数求偏导的过程中还需要对训练集遍历一次，所以BGD的问题是整个训练计算量过大导致训练成本过高，而且不能投入新数据实时更新模型。BGD伪代码如下：
 
-
-
+\begin{algorithm}[H]
+  \vspace{13pt} % 调整图片与上文的垂直距离
+  \SetAlgoLined
+   \While{i in range(nb\_epochs)}{
+    params\_grad = evaluate\_gradient(loss\_function, data, params)\;
+    params = params - learning\_rate * params\_grad\;
+   }
+   \caption{Batch Gradient Descent}
+\end{algorithm}
 
 通过对迭代次数nb\_epochs进行定义，我们首先计算梯度向量 params\_grad，然后沿着梯度的方向更新参数 params，其中learning rate (学习率)的作用是决定了优化过程中我们每一步迈多大。
 
@@ -56,7 +60,7 @@ Momentum算法虽然没有改变学习率但是从效果上讲起到了加快收
 
 RMSProp算法则是对AdaGrad的进一步优化，它引入了一个衰减系数r并且此系数在每个训练epoch都按一定比例衰减，从而解决了AdaGrad在深度学习中可能过早结束的问题。RMSProp的第一个参数实际上与AdaGrad的第一个更新向量相同，同时RMSProp还引入了另一个参数即为学习率除以平方梯度的指数衰减平均值。RMSProp算法适合处理非平稳的目标，对于RNN等网络的效果很好。
 
-在Adam算法中，Adam除了像RMSProp中那样根据平均第一矩（均值）调整参数学习率，同时也使用了梯度第二矩（无中心方差）的平均值(有偏方差)。具体来说，该算法计算梯度和平方梯度的指数移动平均值，并且使用两个超参数beta1和beta2控制这些移动平均值的衰减率。在移动过程中，均质的初始值和beta1、beta2的超参数的值接近1，此时的误差接近0，接下来通过计算带变差估计与偏差修正后的估计进行对比从而使得优化函数得到提升。Adam本质上是带有动量项的RMSprop，Adam的主要优点在于经过偏置校正后，每一次迭代学习率都有确定范围，使得参数比较平稳。经过实验证明Adam在实践中比上述优化算法有更好的表现。
+在Adam算法中，Adam除了像RMSProp中那样根据平均第一矩（均值）调整参数学习率，同时也使用了梯度第二矩（无中心方差）的平均值(有偏方差)。具体来说，该算法计算梯度和平方梯度的指数移动平均值，并且使用两个超参数beta1和beta2控制这些移动平均值的衰减率。在移动过程中，均质的初始值和${\beta}_{1}$、${\beta}_{2}$的超参数的值接近1，此时的误差接近0，接下来通过计算带变差估计与偏差修正后的估计进行对比从而使得优化函数得到提升。Adam本质上是带有动量项的RMSprop，Adam的主要优点在于经过偏置校正后，每一次迭代学习率都有确定范围，使得参数比较平稳。经过实验证明Adam在实践中比上述优化算法有更好的表现。
 
 Adam的主要参数包括${\alpha}$(学习率)、${\beta}_{1}$(一阶矩估计的指数衰减率)、${\beta}_{2}$(二阶矩估计的指数衰减率)、${\epsilon}$。
 
@@ -83,17 +87,19 @@ Adam的主要参数包括${\alpha}$(学习率)、${\beta}_{1}$(一阶矩估计�
 从技术上讲，交叉熵(Cross-Entropy)概念来自于信息理论，并以“位”为单位。交叉熵是建立在最大似然估计的基础之上的，我们希望通过使用交叉熵函数优化模型权重以最小化模型预测的概率分布以及训练集的概率分布之间的差异。除此以外，在最大似然估计的基础上使用高斯分布作为目标，MSE也可以被理解为模型预测与目标分布之间的交叉熵。所以在实际应用中，MSE也同时被作为交叉熵的一部分用于回归问题而且在一部分分类问题的应用中也会使用MSE作为损失函数。在神经网络中，使用交叉熵损失函数的模型极大的提高了 sigmoid 和 softmax 层作为激活函数的输出神经元的效果。
 
 对于二分类问题训练数据集中的一条数据而言，它存在一个已知的类别标签，概率为1.0，所有其他标签的概率为0.0，模型可以估计训练集中某数据属于每个列别标签的概率并且使用交叉熵来计算两个概率分布之间的差异。所以我们可以将数据标签映射到具有概率分布的随机变量上，若以P表示真实值，Q表示预测值，那么每一条数据所代表的交叉熵公式就可表示如下:
-
-
+\begin{equation}
+  H(P, Q) = \sum_{x} P(x)\log(\frac{1}{Q}) = -\sum_{x} P(x)\log(Q(x))
+\end{equation}
 
 而由于对于一个特定的分类问题而言，输出结果可以用列向量y=[$y_{1}$ ,$y_{2}$ ,...,$y_{n}$]$\mathrm{T}$表示，其中当$y_{i}$为预测判定时，$y_{i}$=1其他为0。此时$p_{j}$ = $y_{j}$，那么交叉熵公式可以如下表示：
-
-
-
+\begin{equation}
+  H(P, Q) = -y_{i}\log(q_{i}) = -log(q_{i})
+\end{equation}
 
 那么对于具有N个样本的损失函数计算而言，它可以表示为如下形式：
-
-
+\begin{equation}
+  L = \frac{1}{N}{\sum_{i} L_{i}} = \frac{1}{N}{\sum_{i} -[y_{i}\log(p_{i}) + (1 - y_{i}) \cdot {\log(1-p_{i})}]}
+\end{equation}
 
 $y_{i}$表示样本$i$的label，正类为1，负类为0
 
@@ -102,7 +108,9 @@ $p_{i}$为样本i预测为正的概率
 实际上在二分类问题中的交叉熵损失函数也被称为logloss。
 
 多分类问题本质上是对二分类问题的扩展，多分类问题的公式可以表示如下：
-
+\begin{equation}
+  L = \frac{1}{N}{\sum_{i} L_{i}} = \frac{1}{N}{\sum_{i} - \sum_{c=1}^{M}y_{ic}\log(p_{ic})}
+\end{equation}
 
 
 
@@ -111,11 +119,6 @@ $p_{i}$为样本i预测为正的概率
 $y_{ic}$代表指示变量,如果该类别和样本$i$的类别相同就是1，否则是0；
 
 $p_{ic}$为对于观测样本$i$属于类别$c$的预测概率。
-
-在一个二分类问题中交叉熵的公式如上。
-
-
-
 
 \section{推荐系统评价指标}
 
@@ -211,28 +214,34 @@ XGBoost的系统性能优化如下：
 
 \subsection{DeepFM}
 
-CTR预测大规模应用的算法最初主要是SVM和LR，但是LR/SVM这样的线性模型无法建模非线性的特征交互，于是需要手工进行特征交叉或组合，而这个过程是复杂而且需要大量专业人员的参与；为了弥补LR/SVM无法处理非线性特征交互的问题，因子分解机([Factorization Machine](https://tech.meituan.com/2016/03/03/deep-understanding-of-ffm-principles-and-practices.html))这种方法被提出并得到大规模应用。
+CTR预测大规模应用的算法最初主要是SVM和LR，但是LR/SVM这样的线性模型无法建模非线性的特征交互，于是需要手工进行特征交叉或组合，而这个过程是复杂而且需要大量专业人员的参与；为了弥补LR/SVM无法处理非线性特征交互的问题，因子分解机(Factorization Machine)这种方法被提出并得到大规模应用。
 
-FM的模型由Konstanz大学Steffen Rendle于2010年提出，旨在解决稀疏数据下的特征组合问题。在CTR推荐过程中，主要存在三类数据，分别是用户的特征、广告的特征和上下文特征，这些特征很多是离散的类别特征，而这些离散的特征在使用one-hot encoding后将使特征空间急剧增大，而且变得稀疏，稀疏矩阵使得参数的计算变得困难。为了解决上述问题，FM的做法是通过矩阵分解的方法将评分矩阵分解为用户矩阵和商品矩阵，其中用户和商品都可以使用隐向量进行表示[8](http://www.cs.cmu.edu/~wcohen/10-605/2015-guest-lecture/FM.pdf)；如我们将User表示为一个二维向量，同时将Item表示为二维向量，那么两个向量的点积就是User对Item的打分，如下图所示。
-
-
-
-
-
-类似地，所有二次项参数 wij 可以组成一个对称阵 **W**（为了方便说明FM的由来，对角元素可以设置为正实数），那么这个矩阵就可以分解为 **W**=**V**T**V**，**V** 的第 j 列便是第 j 维特征的隐向量。换句话说，每个参数 wij=⟨**v**i,**v**j⟩，这就是FM模型的核心思想。因此，FM的模型方程为（本文不讨论FM的高阶形式）
-
-
-
-
-FM的训练复杂度为O(kn)级别，可以在线性时间对新样本进行预测。FM通过给单独的特征引入低维稠密隐向量减少了二阶特征交互的参数，并且在这个过程中实现了信息共享，从而使稀疏特征向量的学习更加容易泛化。理论上FM可以建模二阶以上的特征交互，但是由于二阶以上的参数数量将会急剧增加而且更高维的特征交互可以使用DNN、DCN等神经网络模型实现，所以一般上只用二阶的模型。
-
-但是由于FM模型也存在特征无法区分的问题，比如对于奖学金推荐系统而言数据的成绩特征与总学分的组合与论文的发表数量和论文的所属期刊的组合是潜在同样意义的，所以FM特征无法捕捉这样的差异，那么又提出了FFM模型，FFM即为Field-aware Factorization Machines，它在FM模型的基础上引入了Field的概念，对于其中的每一维特征，都属于一个特定的Field，Field与Feature之间存在一对多的关系。具体的实现上看，由一个Categorical feature one-hot出的多个类别特征属于同一个域(Field)，而连续的特征不需要进行one-hot自己作为一个单独的域存在。[FFM的公式](https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf)如下：
+FM\cite{rendle2010factorization}的模型由Konstanz大学Steffen Rendle于2010年提出，旨在解决稀疏数据下的特征组合问题。在CTR推荐过程中，主要存在三类数据，分别是用户的特征、广告的特征和上下文特征，这些特征很多是离散的类别特征，而这些离散的特征在使用one-hot encoding后将使特征空间急剧增大，而且变得稀疏，稀疏矩阵使得参数的计算变得困难。为了解决上述问题，FM的做法是通过矩阵分解的方法将评分矩阵分解为用户矩阵和商品矩阵，其中用户和商品都可以使用隐向量进行表示\cite{FactorizationMachines}；如我们将User表示为一个二维向量，同时将Item表示为二维向量，那么两个向量的点积就是User对Item的打分，如图\ref{UserItemResolve}所示。
+\begin{figure}[htb]
+  \vspace{13pt} % 调整图片与上文的垂直距离
+  \centering
+  \includegraphics[width=0.95\textwidth]{images/UserItemResolve.png}
+  \caption{FM矩阵分解\cite{MeituanFM}}\label{UserItemResolve} % label 用来在文中索引
+\end{figure}
 
 
 
 
+类似地，所有二次项参数 $W_{ij}$ 可以组成一个对称阵 $W$（为了方便说明FM的由来，对角元素可以设置为正实数），那么这个矩阵就可以分解为 $W=V^\mathrm{T}$，$V$ 的第 $j$ 列便是第 $j$ 维特征的隐向量。换句话说，每个参数 $w_{ij} = <v_{i},v_j>$，这就是FM模型的核心思想。因此，FM的模型方程为（本文不讨论FM的高阶形式）
+\begin{equation}
+  y(x) = w_{0} + \sum_{i = 1}^n w_{i}x_{i} + \sum_{i = 1}^n\sum_{j = i + 1}^n w_{ij}x_{i}x_{j}
+\end{equation}
 
-其中x是n维特征向量，f1 f2代表j1 j2对应的field，j1 j2分别是特征向量中的两个特定index的值。FM和FFM对比而言，FM只有一个代表特征的向量，而FFM有一个代表特征向量和一个代表域的向量，也就意味着同一特征，要和不同的 fields 进行组合的时候，会用不同的embedding，因而FFM参数更多。对于一个vector的特征，现在拓成 F 个 vector，只要跟它任意组合，就有一个 vector 来代表，这就是 FFM 的基本思想。
+
+
+FM的训练复杂度为 $O(kn)$ 级别，可以在线性时间对新样本进行预测。FM通过给单独的特征引入低维稠密隐向量减少了二阶特征交互的参数，并且在这个过程中实现了信息共享，从而使稀疏特征向量的学习更加容易泛化。理论上FM可以建模二阶以上的特征交互，但是由于二阶以上的参数数量将会急剧增加而且更高维的特征交互可以使用DNN、DCN等神经网络模型实现，所以一般上只用二阶的模型。
+
+但是由于FM模型也存在特征无法区分的问题，比如对于奖学金推荐系统而言数据的成绩特征与总学分的组合与论文的发表数量和论文的所属期刊的组合是潜在同样意义的，所以FM特征无法捕捉这样的差异，那么又提出了FFM模型，FFM即为Field-aware Factorization Machines\cite{juan2016field}，它在FM模型的基础上引入了Field的概念，对于其中的每一维特征，都属于一个特定的Field，Field与Feature之间存在一对多的关系。具体的实现上看，由一个Categorical feature one-hot出的多个类别特征属于同一个域(Field)，而连续的特征不需要进行one-hot自己作为一个单独的域存在。FFM的公式如下：
+\begin{equation}
+  \phi_{FFM}(w, x) = \sum_{j_1 = 1}^n \sum_{j_2 = j_1 + 1}^n (w_{j_1, f_2} \cdot w_{j_2, f_1})x_{j_1} x_{j_2}
+\end{equation}
+
+其中x是n维特征向量，$f_1$ $f_2$ 代表 $j_1$ $j_2$ 对应的field，$j_1$ $j_2$ 分别是特征向量中的两个特定index的值。FM和FFM对比而言，FM只有一个代表特征的向量，而FFM有一个代表特征向量和一个代表域的向量，也就意味着同一特征，要和不同的 fields 进行组合的时候，会用不同的embedding，因而FFM参数更多。对于一个vector的特征，现在拓成 F 个 vector，只要跟它任意组合，就有一个 vector 来代表，这就是 FFM 的基本思想。
 
 可以看到无论是FM或是FFM，都是对两个特征进行的特征组合，那么如果有更高阶的特征组合，就需要更复杂的模型进行训练，随着深度神经网络的发展，研究发现可以使用多层的网络结构进行更好的高阶特征表示，从而学习高阶的非线性关系。而深度神经网络为代表的模型分化出了两种发展思路，一种是并行结构，一种是串行结构。
 
@@ -246,28 +255,56 @@ FM的训练复杂度为O(kn)级别，可以在线性时间对新样本进行预�
 
 串行结构的代表模型有DeepCross、xDeepFM
 
-首先提出的并行结构为Wide \& Deep，它于2016年由Google发布，它分为两个部分，分别是Wide部分以及Deep部分，其中Wide部分的作用是通过交叉特征实现高效的记忆能力，达到准确推荐的目的，使用LR等广义线性模型实现特征交叉。Deep部分则是一个前馈神经网络模型，由于基于嵌入的模型（如FM与DNN）能将输入转化为一个低维稠密向量从而获得了一定的泛化能力，减轻了特征工程的负担。embedding得到的向量作为Deep部分第一层隐藏层的输入并经过多层隐藏层厚并根据得到的loss进行训练。此模型同时学习了低阶特征与高阶特征并且在输出层对上述Deep以及Wide的结果进行加权求和，在Google Play离线测试以及在线A/B测试中都取得了超越Deep或Wide的效果。但是Wide模型存在需要手工特征处理的情况，为了解决这一问题，华为联合哈尔滨工业大学提出了一种改进模型--DeepFM。
+首先提出的并行结构为Wide \& Deep，它于2016年由Google发布，它分为两个部分，分别是Wide部分以及Deep部分，其中Wide部分的作用是通过交叉特征实现高效的记忆能力，达到准确推荐的目的，使用LR等广义线性模型实现特征交叉。Deep部分则是一个前馈神经网络模型，由于基于嵌入的模型（如FM与DNN）能将输入转化为一个低维稠密向量从而获得了一定的泛化能力，减轻了特征工程的负担。embedding得到的向量作为Deep部分第一层隐藏层的输入并经过多层隐藏层厚并根据得到的loss进行训练。此模型同时学习了低阶特征与高阶特征并且在输出层对上述Deep以及Wide的结果进行加权求和，在Google Play离线测试以及在线A/B测试中都取得了超越Deep或Wide的效果。但是Wide模型存在需要手工特征处理的情况，为了解决这一问题，华为联合哈尔滨工业大学提出了一种改进模型--DeepFM\cite{guo2017deepfm}。
 
-DeepFM结合了FM和Wide \& Deep的特点，并通过共享FM和DNN的Embedding来减少参数量和共享信息，并且通过引入FM克服了手工特征处理的障碍。针对高维稀疏输入特征，DeepFM采用Word2Vec的词嵌入思想，把高维稀疏的向量映射为相对低维且向量元素不为零的空间向量。DeepFM的网络结构如\ref{DeepFM结构图}所示。
+DeepFM结合了FM和Wide \& Deep的特点，并通过共享FM和DNN的Embedding来减少参数量和共享信息，并且通过引入FM克服了手工特征处理的障碍。针对高维稀疏输入特征，DeepFM采用Word2Vec的词嵌入思想，把高维稀疏的向量映射为相对低维且向量元素不为零的空间向量。DeepFM的网络结构如图\ref{DeepFM结构}所示。
 \begin{figure}[htb]
   \vspace{13pt} % 调整图片与上文的垂直距离
   \centering
   \includegraphics[width=0.95\textwidth]{images/DeepFM.png}
-  \caption{DeepFM结构图\cite{DeepFM结构图}}\label{DeepFM结构图} % label 用来在文中索引
+  \caption{DeepFM结构图\cite{DeepFM结构图}}\label{DeepFM结构} % label 用来在文中索引
 \end{figure}
 
 可见DeepFM与Wide \& Deep的框架极为类似，差异在于在Wide部分的特征交叉输入项被替换为FM部分，FM代替Wide部分的手动特征工程构造二阶特征叉乘，从而实现了低阶的自动特征工程。DeepFM的Wide与Deep模块共享相同的由各个Field的one-hot编码横向拼接而成的高维稀疏向量输入；除此以外FM层与NN层共享相同的embedding层，从而降低了模型的复杂度，并且在embedding层训练过程中同时接受低维以及高维特征交互的反馈。在DeepFM的实验中作者对embedding层分别进行了共享与不共享的对比，发现共享效果更优。
+网络整体的输出为:
+\begin{equation}
+  \hat{y} = sigmoid(y_{FM} +y_{DNN})
+\end{equation}
 
+FM层需要注意的是FM中引入的辅助向量 $V$ 现在为网络权重的一部分并且这些权重被学习并用于将Embedding输出的向量进一步压缩为嵌入向量。与原有的FM中辅助向量 $V$ 是FM预训练得到并用于网络初始化不同，DeepFM中没有使用辅助向量 $V$ 来进行初始化，而是将FM作为网络结构的一部分，如此这样一来，我们就无需通过FM进行预训练，而是以端到端的方式联合训练整个网络。
+FM对应的输出如下：
+\begin{equation}
+  y(x) = \sum_{i = 1}^n w_{i}x_{i} + \sum_{i = 1}^n\sum_{j = i + 1}^n w_{ij}x_{i}x_{j}
+\end{equation}
+FM部分的结构如图\ref{DeepFM-FM}:
+\begin{figure}[htb]
+  \vspace{13pt} % 调整图片与上文的垂直距离
+  \centering
+  \includegraphics[width=0.6\textwidth]{images/DeepFM-FM.png}
+  \caption{FM结构\cite{guo2017deepfm}}\label{DeepFM-FM} % label 用来在文中索引
+\end{figure}
 
+Embedding层的目的是对输入的稀疏特征矩阵进行嵌入转为稠密低维向量，因为DNN部分的输入和图片/音频等低维特征不同，CTR的数据集比较稀疏，而且其中有大量one-hot后的离散类别特征，并且离散的特征和连续的特征混合在一起，所以需要使用Embedding层降维，通过Embedding后得到的低维稠密向量输入第一层隐含层。这样做可以防止网络参数过多导致网络训练时间长运算开销大。需要注意的是无论输入的某个Field的特征的长度如何embedding后的维数都一样。Embedding层对应结构如图\ref{DeepFM-Embedding}:
+\begin{figure}[htb]
+  \vspace{13pt} % 调整图片与上文的垂直距离
+  \centering
+  \includegraphics[width=0.6\textwidth]{images/DeepFM-Embedding.png}
+  \caption{Embedding层结构\cite{guo2017deepfm}}\label{DeepFM-Embedding} % label 用来在文中索引
+\end{figure}
 
+embedding层的输出如下所示：
+\begin{equation}
+  a^{(0)} = [e_1, e_2, ..., e_m],
+\end{equation}
 
+其中 $ e_i $ 代表第 $ i $ 个Field，m为Field的个数，$ a^{(0)} $ 是FM 与 DNN部分的输入。
 
-FM部分的结构如上，FM对应的输出如下：
-
-
-
-
-
-DNN部分的结构如下：
-
+网络的Deep部分是一个前馈神经网络，用于学习高维特征交叉。DNN部分的输入是embedding层的输出向量，
+DNN部分的结构如图\ref{DeepFM-DNN}：
+\begin{figure}[htb]
+  \vspace{13pt} % 调整图片与上文的垂直距离
+  \centering
+  \includegraphics[width=0.9\textwidth]{images/DeepFM-DNN.png}
+  \caption{DNN结构\cite{guo2017deepfm}}\label{DeepFM-DNN} % label 用来在文中索引
+\end{figure}
 

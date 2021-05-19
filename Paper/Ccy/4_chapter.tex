@@ -35,11 +35,35 @@
 
 \section{聚类方法}
 
-\subsection{PCA/TSNE成分分析}
+\subsection{PCA/TSNE特征降维}
 
-聚类使用的主要方法均为无监督聚类，以典型的KMeans方法为例，我们首先对论文数据进行了清洗，并且保留了聚类所用到的两个特征--论文作者排序以及期刊（会议）等级，并且使用TSNE以及PCA两种方法对数据进行了主成分分析以及可视化处理，同时我们使用了one-hot encoding以及label encoding两种方法将文字特征转化为数值特征，理论上而言期刊（会议）等级和作者排序均存在大小关系，所以我们构建的label encoding也是以高等级期刊、高作者排序对应数值低而进行，因此我们自主设定了排序等级，以期刊（会议）等级的label encoding为例：
+聚类使用的主要方法均为无监督聚类，以典型的KMeans方法为例，我们首先对论文数据进行了清洗，并且保留了聚类所用到的两个特征--论文作者排序以及期刊（会议）等级，并且使用TSNE以及PCA两种方法对数据进行了主成分分析、降维以及可视化处理，同时我们使用了one-hot encoding以及label encoding两种方法将文字特征转化为数值特征，理论上而言期刊（会议）等级和作者排序均存在大小关系，所以我们构建的label encoding也是以高等级期刊、高作者排序对应数值低而进行，因此我们自主设定了排序等级，以期刊（会议）等级的label encoding为例，mapping如图\ref{paper-conference-label-encoding}所示：
+\begin{figure}[htb]
+    \vspace{6pt} % 调整图片与上文的垂直距离
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/Paper-conference-mapping.png}
+    \caption{论文期刊(会议)的Mapping}\label{paper-conference-label-encoding} % label 用来在文中索引
+\end{figure}
 
-由上可知期刊（会议）等级排序共8类，所以我们对其进行了一一映射，同时也可以对其进行one-hot encoding，对one-hot encoding后的样本进行TSNE可视化以及主成分分析后的结果如下：
+
+由上可知期刊（会议）等级排序共8类，所以我们对其进行了一一映射，同时也可以对其进行one-hot encoding，对one-hot encoding后的样本进行TSNE可视化以及主成分分析后的结果如图\ref{TSNE-PCA-one-hot}所示：
+\begin{figure}[htb]
+    \vspace{13pt} % 调整图片与上文的垂直距离
+    \begin{minipage}[htb]{0.5\linewidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/TSNE-one-hot.png}
+        \caption{TSNE}
+    \end{minipage}
+    % \hspace{0.5in}
+    \begin{minipage}[htb]{0.5\linewidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/PCA-one-hot.png}
+        \caption{PCA}
+    \end{minipage}
+    \caption{one-hot 编码的TSNE与PCA可视化结果}\label{TSNE-PCA-one-hot} % label 用来在文中索引
+\end{figure}
+  
+
 
 
 
@@ -47,31 +71,161 @@
 
 \subsection{K-Means 聚类}
 
-接下来我首先进行的是使用KMeans方法聚类，根据KMeans的官方文档，对类别特征最好进行one-hot encoding后去除自身的欧几里得距离特征进行聚类更为合适，虽然KMeans对噪声敏感而且初始点的选择可能会影响聚类效果，但KMeans作为一种容易理解简单易懂而且执行速度较快的聚类算法在这种小量数据集上可以有较好的表现，所以我首先选择了KMeans对其进行聚类。由于KMeans要手动选取聚类类数k，所以我首先进行了k=5的聚类，效果虽然不太理想但是证明了KMeans在这个数据集是有效的，接着我对KMeans的聚类结果进行了可视化展示，分别展示了聚类不同类中数据个数以及PCA主成分分析后提取的主成分分布图，结果如下：
+接下来我首先进行的是使用KMeans方法聚类，根据KMeans的官方文档，对类别特征最好进行one-hot encoding后去除自身的欧几里得距离特征进行聚类更为合适，虽然KMeans对噪声敏感而且初始点的选择可能会影响聚类效果，但KMeans作为一种容易理解简单易懂而且执行速度较快的聚类算法在这种小量数据集上可以有较好的表现，所以我首先选择了KMeans对其进行聚类。由于KMeans要手动选取聚类类数k，所以我首先进行了k=5的聚类，效果虽然不太理想但是证明了KMeans在这个数据集是有效的。
 
+接着我对KMeans的聚类结果进行了可视化展示，分别展示了聚类不同类中数据个数以及PCA主成分分析后提取的主成分分布图，其中左图展示的是聚类个数以及聚类的标签之间的关系，右图是PCA的主成分分布情况，其中上面两图是label encoding的结果，下面是one-hot encoding的结果。从图中来看label中有一个类的数量极多，这个类根据后续的查询也是所有论文中最多的两个成分组成的类，分别是第一作者以及国际会议。
+结果如图\ref{Label-distribution-and-PCA}所示：
+\begin{figure}[htb]
+    \vspace{13pt} % 调整图片与上文的垂直距离
+    \begin{minipage}[htb]{0.5\linewidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/Kmeans-5-label-distribution-label-encoding.png}
+        \caption{label-encoding 标签分布}
+    \end{minipage}
+    % \hspace{0.5in}
+    \begin{minipage}[htb]{0.5\linewidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/Kmeans-5-PCA-label-encoding.png}
+        \caption{label-encoding PCA}
+    \end{minipage}
+    \begin{minipage}[htb]{0.5\linewidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/Kmeans-5-label-distribution-one-hot.png}
+        \caption{独热编码标签分布}
+    \end{minipage}
+    % \hspace{0.5in}
+    \begin{minipage}[htb]{0.5\linewidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/Kmeans-5-PCA-one-hot.png}
+        \caption{独热编码PCA}
+    \end{minipage}
+    \caption{不同编码的TSNE与PCA可视化结果}\label{Label-distribution-and-PCA} % label 用来在文中索引
+  \end{figure}
 
+接着我对KMeans进行了优化，主要的优化为以不同的k值进行实验并评价聚类效果，对于聚类效果的评价，我选用的是轮廓系数(silhouette score)和Calinski-Harabasz系数，下面将分别对轮廓系数与Calinski-Harabasz系数展开介绍。
 
-以上左图展示了聚类个数以及聚类的标签之间的关系，右图是PCA的主成分分布情况，从图中来看label中有一个类的数量极多，这个类根据后续的查询也是所有论文中最多的两个成分组成的类，分别是第一作者以及国际会议。
+\begin{enumerate}
+    \item 轮廓系数取值在[-1,1]之间，接近0表示重叠的群集，负值通常表示样本分配给错误的聚类，轮廓系数的值大表示同类样本相距近，不同样本相距远，聚类效果较好，反之则代表同类样本与不同类相本之间距离不明显，聚类效果较差；
+    \item C-H系数的主要作用是计算同一类别内部的协方差大小，并以此衡量类内的相似性，类内数据的协方差越小越好，类间的协方差越大越好，对于C-H系数而言C-H系数值越高说明聚类的区分度越高。
+\end{enumerate}
+那么我通过S-C值与C-H值这两个指标可视化输出不同k值的轮廓系数与C-H系数变化曲线来确定聚类簇数k的最优值。结果如\ref{k-differentencoding-SC-and-CH-curve-change}所示：
+\begin{figure}[htb]
+    \vspace{13pt} % 调整图片与上文的垂直距离
+    \begin{minipage}[htb]{0.5\linewidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/Kmeans-auto-sc-label-encoding.png}
+        \caption{label-encoding 轮廓系数曲线}
+    \end{minipage}
+    % \hspace{0.5in}
+    \begin{minipage}[htb]{0.5\linewidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/Kmeans-auto-c-h-label-encoding.png}
+        \caption{label-encoding C-H曲线}
+    \end{minipage}
+    \begin{minipage}[htb]{0.5\linewidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/Kmeans-auto-sc-one-hot.png}
+        \caption{one-hot 轮廓系数曲线}
+    \end{minipage}
+    % \hspace{0.5in}
+    \begin{minipage}[htb]{0.5\linewidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/Kmeans-auto-c-h-one-hot.png}
+        \caption{one-hot C-H曲线}
+    \end{minipage}
+    \caption{one-hot label-encoding不同k值轮廓系数、C-H曲线变化}\label{k-differentencoding-SC-and-CH-curve-change} % label 用来在文中索引
+\end{figure}
 
-接着我对KMeans进行了优化，主要的优化为以不同的k值进行实验并评价聚类效果，对于聚类效果的评价，我选用的是轮廓系数(silhouette score)和Calinski-Harabasz系数。轮廓系数取值在[-1,1]之间，接近0表示重叠的群集，负值通常表示样本分配给错误的聚类，轮廓系数的值大表示同类样本相距近，不同样本相距远，聚类效果较好；c-h系数主要作用是计算同一类别内部的协方差大小衡量类内的相似性，类内数据的协方差越小越好，类间的协方差越大越好，对于C-H系数而言C-H系数值越高说明聚类的区分度越高。那么我通过这两个指标可视化输出不同k值的系数变化曲线来确定k的最优值。结果如下：
-
-
-
+\newpage
 可以看到k=7左右的聚类效果较好，那么在这样的情况下我们考虑使用其它方法进行聚类并评价聚类效果选择最优算法进行聚类，选择的其他算法包括谱聚类以及HDBSCAN。
 
 \subsection{HDBSCAN 聚类}
 
-为了实现自动化的聚类个数n选择，我使用了HDBSCAN进行实验，在HDBSCAN的可视化工作上我生成了HDBSCAN的集群层次结构、生成的提取簇以及压缩聚类树，聚类的效果如下：
+为了实现自动化的聚类个数n选择，我使用了HDBSCAN进行实验，在HDBSCAN的可视化工作上我生成了HDBSCAN的集群层次结构、生成的提取簇以及压缩聚类树，其中集群层次结构是通过并查集原理根据边之间的距离对不同的簇进行簇聚，从而使每一个簇形成一个单链接，此算法的目的在于寻找单链接的最终点；压缩聚类树的目的是根据最小簇大小对树进行分裂，从而使得算法能够标记在簇外的点，也就是数据标签中为-1的点；提取簇的目的则是将每个簇最终形成一个特定的平面聚类，从而使不同簇映射到不同平面上增强聚类效果。我们同样在one-hot encoding 以及 label encoding 两种不同标签上进行验证，聚类的效果如\ref{single-linkage-tree-condensed-tree}：
+\begin{figure}[htb]
+    \vspace{13pt} % 调整图片与上文的垂直距离
+    \centering
+    \begin{minipage}[htb]{0.4\linewidth}
+        \includegraphics[width=0.8\textwidth]{images/HDBSCAN-single-linkage-tree-label-encoding.png}
+        \caption{label-encoding 集群层次结构}
+    \end{minipage}
+    % \hspace{0.5in}
+    \begin{minipage}[htb]{0.4\linewidth}
+        % \centering
+        \includegraphics[width=0.8\textwidth]{images/HDBSCAN-condensed-tree-label-encoding.png}
+        \caption{label-encoding 提取簇}
+    \end{minipage}
+    \begin{minipage}[htb]{0.4\linewidth}
+        % \centering
+        \includegraphics[width=0.8\textwidth]{images/HDBSCAN-single-linkage-tree-one-hot.png}
+        \caption{one-hot 集群层次结构}
+    \end{minipage}
+    % \hspace{0.5in}
+    \begin{minipage}[htb]{0.4\linewidth}
+        % \centering
+        \includegraphics[width=0.8\textwidth]{images/HDBSCAN-condensed-tree-one-hot.png}
+        \caption{one-hot 提取簇}
+    \end{minipage}
+    % \hspace{0.5in}
+    % \begin{minipage}[htb]{0.3\linewidth}
+    %     \centering
+    %     \includegraphics[width=0.8\textwidth]{images/Kmeans-auto-c-h-label-encoding.png}
+    %     \caption{label-encoding C-H曲线}
+    % \end{minipage}
+    % \begin{minipage}[htb]{0.3\linewidth}
+    %     \centering
+    %     \includegraphics[width=0.8\textwidth]{images/Kmeans-auto-sc-one-hot.png}
+    %     \caption{one-hot 轮廓系数曲线}
+    % \end{minipage}
+    \caption{one-hot label-encoding 集群层次结构、提取簇变化}\label{single-linkage-tree-condensed-tree} % label 用来在文中索引
+\end{figure}
 
+\newpage
+可以看到虽然HDBSCAN的效果不甚理想，主要原因是由于HDBSCAN本身是对平面上的数据进行分类，对于大量数据重合的情况分类效果尤其是提取簇和压缩树的效果不明显，但是在Label encoding中的HDBSCAN也将聚类簇数设置为6，如果再加上label为-1的列（对于HDBSCAN不属于任何聚类簇的标签）那么簇数为7，而如果使用one-hot encoding的结果那么应该分为7+1共8类。两种不同encoding方式下聚类簇数的自动化选择与优化后的KMeans效果相似，再一次印证了k=7是较优结果。除此以外可以看到HDBSCAN的提取簇最终效果one-hot encoding和label encoding的差异非常大，这主要是由于one-hot后数据更加稀疏，但是在同一个category的特征距离进行计算时相较于label encoding所得出的欧式距离较小，所以数据分布更为致密；而label encoding在距离计算时由于平方使同一个categorical的特征距离大幅扩大，所以显得更为分散。
 
-
-可以看到虽然HDBSCAN的效果不甚理想，主要原因是由于HDBSCAN本身是对平面上的数据进行分类，对于大量数据重合的情况分类效果尤其是提取簇和压缩树的效果不明显，但是HDBSCAN也将聚类簇数设置为6，如果再加上label为-1的列（对于HDBSCAN不属于任何聚类簇的标签）那么簇数为7，与KMeans的效果相同，再一次印证了k=7是较优结果。
+同时我们也使用了DBSCAN方法，DBSCAN方法取eps=0.01, min\_samples=3，最终也是7-8类；
+但是效果不明显而且由于需要手动对EPS进行选择，所以在这里不展示结果。
 
 \subsection{谱聚类}
 
-除此以外我们也使用了谱聚类对聚类结果进行测试，谱聚类同样使用了轮廓系数以及Calinski-Harabasz系数对不同的聚类簇数进行测试，同时也对gamma值进行了调参，gamma是谱聚类算法核函数参数，可视化输出效果如下：
-
-
+除此以外我们也使用了谱聚类对聚类结果进行测试，谱聚类同样使用了轮廓系数以及Calinski-Harabasz系数对不同的聚类簇数进行测试，同时也对gamma值进行了调参，gamma是谱聚类算法核函数参数，可视化输出效果如\ref{label-encoding-one-hot-k-gamma-sc-c-h}下：
+\begin{figure}[htb]
+    \vspace{13pt} % 调整图片与上文的垂直距离
+    \centering
+    \begin{minipage}[htb]{0.4\linewidth}
+        \includegraphics[width=0.8\textwidth]{images/Spectral-clustering-sc-label-encoding.png}
+        \caption{label-encoding k-gamma 轮廓系数曲线}
+    \end{minipage}
+    % \hspace{0.5in}
+    \begin{minipage}[htb]{0.4\linewidth}
+        % \centering
+        \includegraphics[width=0.8\textwidth]{images/Spectral-clustering-c-h-label-encoding.png}
+        \caption{label-encoding k-gamma C-H 曲线}
+    \end{minipage}
+    \begin{minipage}[htb]{0.4\linewidth}
+        % \centering
+        \includegraphics[width=0.8\textwidth]{images/Spectral-clustering-sc-one-hot.png}
+        \caption{one-hot k-gamma 轮廓系数曲线}
+    \end{minipage}
+    % \hspace{0.5in}
+    \begin{minipage}[htb]{0.4\linewidth}
+        % \centering
+        \includegraphics[width=0.8\textwidth]{images/Spectral-clustering-c-h-one-hot.png}
+        \caption{one-hot k-gamma C-H 曲线}
+    \end{minipage}
+    % \hspace{0.5in}
+    % \begin{minipage}[htb]{0.3\linewidth}
+    %     \centering
+    %     \includegraphics[width=0.8\textwidth]{images/Kmeans-auto-c-h-label-encoding.png}
+    %     \caption{label-encoding C-H曲线}
+    % \end{minipage}
+    % \begin{minipage}[htb]{0.3\linewidth}
+    %     \centering
+    %     \includegraphics[width=0.8\textwidth]{images/Kmeans-auto-sc-one-hot.png}
+    %     \caption{one-hot 轮廓系数曲线}
+    % \end{minipage}
+    \caption{one-hot label-encoding k-gamma 轮廓系数与C-H系数曲线}\label{label-encoding-one-hot-k-gamma-sc-c-h} % label 用来在文中索引
+\end{figure}
 
 同样可以看到在7-1的组合左右谱聚类的轮廓系数达到最优，但是值得注意的是C-H系数呈现下降的态势，但是总体而言最终还是选择k=7，gamma=1进行聚类较为合适。
 
@@ -81,6 +235,45 @@
 
 除此以外可以考虑的方法还有对连续特征离散化，比如将成绩将成绩分段统计作为特征进行训练。这样可以避免连续取值需要归一化的问题，并且可以更清晰的对分数分布等特征在模型中的作用进行统计。
 
+同时我们可以看到使用 one-hot encoding 和 label encoding 两种不同编码方式得到的聚类结果有很大差别，而这种差别在下文的模型构建过程中也有很明显的体现。使用不同方法聚类的label以及对应label数量如图\ref{one-hot-label-encoding-clustering-label-result}所示。
+\begin{figure}[htb]
+    \vspace{13pt} % 调整图片与上文的垂直距离
+    \centering
+    \begin{minipage}[htb]{0.4\linewidth}
+        \includegraphics[width=0.8\textwidth]{images/Spectral-clustering-label-result-label-encoding.png}
+        \caption{谱聚类 label-encoding 标签分布}
+    \end{minipage}
+    % \hspace{0.5in}
+    \begin{minipage}[htb]{0.4\linewidth}
+        % \centering
+        \includegraphics[width=0.8\textwidth]{images/Kmeans-label-result-label-encoding-.png}
+        \caption{KMeans label-encoding 分布}
+    \end{minipage}
+    \begin{minipage}[htb]{0.4\linewidth}
+        % \centering
+        \includegraphics[width=0.8\textwidth]{images/Spectral-clustering-label-result-one-hot.png}
+        \caption{谱聚类 one-hot 标签分布}
+    \end{minipage}
+    % \hspace{0.5in}
+    \begin{minipage}[htb]{0.4\linewidth}
+        % \centering
+        \includegraphics[width=0.8\textwidth]{images/KMeans-label-result-one-hot.png}
+        \caption{KMeans one-hot 标签分布}
+    \end{minipage}
+    % \hspace{0.5in}
+    % \begin{minipage}[htb]{0.3\linewidth}
+    %     \centering
+    %     \includegraphics[width=0.8\textwidth]{images/Kmeans-auto-c-h-label-encoding.png}
+    %     \caption{label-encoding C-H曲线}
+    % \end{minipage}
+    % \begin{minipage}[htb]{0.3\linewidth}
+    %     \centering
+    %     \includegraphics[width=0.8\textwidth]{images/Kmeans-auto-sc-one-hot.png}
+    %     \caption{one-hot 轮廓系数曲线}
+    % \end{minipage}
+    \caption{one-hot label-encoding 谱聚类、KMeans 标签分布}\label{one-hot-label-encoding-clustering-label-result} % label 用来在文中索引
+\end{figure}
+
 \section{csv生成}
 
 在生成csv的过程中我们也充分考虑了论文等级论文期刊存在的偏序关系，以论文的排序举例，首先是按照用户的user\_id进行排序，接下来按照论文层次进行排序，然后按照论文的作者等级进行排序，最后按照论文的期刊等级排序，在这样的排序条件下，虽然可能出现一个人有多个论文的情况，但是可以保证所有的数据都是以特定规则排列而不是无规则排列，这样在模型训练过程中会更为准确。除此以外对于论文等特征我们也统计了论文数量作为特征之一，而且在实验中证明论文数量也是影响奖学金评定的重要因素。
@@ -88,44 +281,3 @@
 在特征设计的过程中为了将one-hot后离散的稀疏特征进行降维可以选择多种方法，其中比较典型的方法为借用word2Vec的思想加入embedding层进行嵌入训练将特征转化为低维稠密且元素不为0的特征，或者通过决策树等方式对特征进行降维处理。我们在DeepFM中验证了前一种方法，并且使用了XGBoost验证了第二种方法。
 
 % 这里插入一个参考文献，仅作参考
-
-\subsection{三级题目}
-
-\textcolor{blue}{正文部分：宋体、小四；正文行距：22磅；间距段前段后均为0行。阅后删除此段。}
-
-\textcolor{blue}{图、表居中，图注标在图下方，表头标在表上方，宋体、五号、居中，1.25倍行距，间距段前段后均为0行，图表与上下文之间各空一行。阅后删除此段。}
-
-\textcolor{blue}{\underline{\underline{图-示例：（阅后删除此段）}}}
-
-\begin{figure}[htbp]
-  \vspace{13pt} % 调整图片与上文的垂直距离
-  \centering
-  \includegraphics[]{images/bit_logo.png}
-  \caption{标题序号}\label{标题序号} % label 用来在文中索引
-\end{figure}
-
-\textcolor{blue}{\underline{\underline{表-示例：（阅后删除此段）}}}
-
-\begin{table}[htbp]
-  \linespread{1.5}
-  \zihao{5}
-  \centering
-  \caption{统计表}\label{统计表}
-  \begin{tabular}{*{5}{>{\centering\arraybackslash}p{2cm}}}
-    \hline
-    项目    & 产量    & 销量    & 产值   & 比重    \\ \hline
-    手机    & 1000  & 10000 & 500  & 50\%  \\
-    计算机   & 5500  & 5000  & 220  & 22\%  \\
-    笔记本电脑 & 1100  & 1000  & 280  & 28\%  \\ \hline
-    合计    & 17600 & 16000 & 1000 & 100\% \\ \hline
-    \end{tabular}
-\end{table}
-
-\textcolor{blue}{公式标注应于该公式所在行的最右侧。对于较长的公式只可在符号处（+、-、*、/、$\leqslant$ $\geqslant$ 等）转行。在文中引用公式时，在标号前加“式”，如式（1-2）。阅后删除此
-段。}
-
-\textcolor{blue}{公式-示例：（阅后删除此段）}
-% 公式上下不要空行，置于同一个段落下即可，否则上下距离会出现高度不一致的问题
-\begin{equation}
-    LRI=1\ ∕\ \sqrt{1+{\left(\frac{{\mu }_{R}}{{\mu }_{s}}\right)}^{2}{\left(\frac{{\delta }_{R}}{{\delta }_{s}}\right)}^{2}}
-\end{equation}
