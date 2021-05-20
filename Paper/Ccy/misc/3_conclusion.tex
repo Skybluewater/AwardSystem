@@ -1,0 +1,57 @@
+%%
+% The BIThesis Template for Bachelor Graduation Thesis
+%
+% 北京理工大学毕业设计（论文）结论 —— 使用 XeLaTeX 编译
+%
+% Copyright 2020 Spencer Woo
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+%
+% The Current Maintainer of this work is Spencer Woo.
+%
+% Compile with: xelatex -> biber -> xelatex -> xelatex
+
+\unnumchapter{结~~~~论}
+\renewcommand{\thechapter}{结论}
+
+\ctexset{
+  section/number = \arabic{section}
+}
+
+% 结论部分尽量不使用 \subsection 二级标题，只使用 \section 一级标题
+
+% 这里插入一个参考文献，仅作参考
+通过这个毕业设计，我基本上完整的进行了数据预处理、数据仓储、特征构建、特征工程、算法选择与比较以及预测推荐的完整流程。虽然整个系统在训练当中的数据量偏少，特征维数较少而且很多功能都还没有实现，但是整体而言这让我体会到了一个完整的数据挖掘的流程，使我获益匪浅。
+
+\section{特征构建与特征工程}
+
+值得注意的是在挖掘过程中，XGBoost使用one-hot 编码以及label encoding 两种编码方式的结果有明显差异，再一次提示我在进行特征构建时要注意考虑特征是否存在偏序关系。如果只是简单的类别特征，如国家等，可以考虑使用one-hot encoding 的方法进行编码，否则最好考虑两种方法融合或者进行比较。
+
+除此以外特征构建过程中我们没有使用特征重要性或者PCA主成分分析等方法对特征进行降维，而是使用了聚类的方法以期可以对特征降维。从结果来看聚类的标签在模型权重的重要性比重不大，可能是由于数据量较少导致模型训练过程中没有使用到全部的特征，这一点在XGB 模型的特征重要性当中有比较明显的体现，为了日后系统扩展的需求，暂时先不对特征进行筛选或主成分分析来降维。
+
+在特征构建的过程中我们也没有使用手工特征交叉，主要原因是对于数据的理解不够深入，不知道怎么进行特征交叉的效果比较好。而且整体来看最后的特征哪怕是label encoding的结果也有超过60维，而且很多特征在训练中起到的作用很小，甚至对模型是负优化，可以考虑在未来剔除这些特征，如专利的分类(发明专利/其他)等。在特征构建的过程中只使用了两类具有代表性或数量较多的标签作为label进行训练，未来也可以加入国奖等其他奖学金将XGBoost模型修改为多分类，多分类下可以将一类作为正类其他类作为负类计算某条数据的概率并以阈值为过滤条件进行推荐，这样可以实现Top-N推荐的功能。
+
+同时在多分类下也可以对网络输出层进行修改，使神经元个数与分类标签个数相等，从而构建一多分类器。也可以加入Sigmoid进行分类器构建。
+
+\section{模型训练与融合}
+
+在这一部分中我们分别进行了单独的XGBoost分类器构建、朴素贝叶斯分类器构建以及SVM模型构建等多种模型，结果上XGBoost无论在训练精度或者AUC值上都占有明显优势。体现了XGBoost在处理这种少量有关联特征的数据时的优秀效果，
+
+在XGBoost的特征构建过程中，可以看做我们对模型进行了融合，将XGBoost的结果与逻辑回归分类器进行融合。但是这里的缺点是最后形成的模型并不是一个端到端的模型，而是需要先对 XGB 进行训练，并没有达到联合训练的效果。所以这种方法整体的训练难度较高，但是值得肯定的是这种方法的收益率是很明显的，XGBoost的apply方法的叶子节点输出可以看作是高维的特征交叉结果，而对低维特征的保留与逻辑回归方法的运用则可以看作是另一种Wide \& Deep模型的实现思路，不同的是Wide \& Deep 还使用了embedding层进行了降维，而我们没有对特征进行embedding处理。
+下一步可以考虑将XGBoost的apply输出当作Wide \& Deep中Wide部分的输入，代替手动特征工程的结果对网络进行训练。
+
+但是无论如何XGBoost和神经网络相比它的优势是很明显的，具体体现在XGBoost的模型训练速度更快、精度更高。而且可以很方便的将XGBoost的结果与其他模型融合。也进一步验证了对于中、少量的结构化数据XGBoost的效果一般比神经网络更优。
+
+可以考虑使用融合模型的方法训练，但是没有采用这种方法的原因是单纯的XGBoost效果很好，采用这种方法融合意义不大。
+
+同时还应当注意XGBoost在训练过程中的特征重要性，可以看到论文数量以及成绩两因素对得奖结果的影响是非常明显的，从特征上可以看出学分以及对应的单项平均成绩在使用两种不同编码方法的XGBoost模型中所占权重都比较大，其次在使用label-encoding的XGB模型中它学习到了更多特征相关性，值得注意的是未分类课成绩、选修课成绩、加权平均成绩在两模型中所占比重都比较高，第一篇论文在模型中所占权重较高，而且使用label encoding的模型在使用论文特征、其他成果特征、荣誉获奖特征、科研项目特征之外还学习到了专利这个大类。但是两个模型都没有学习到竞赛这个大类的特征，可能是数据量较少或竞赛大类缺少竞赛获奖特征而只包含参加竞赛和竞赛等级，导致此类特征不适合用于奖学金分类。
+
+综上可以看到XGBoost+LR的强大性能以及特征构建过程中可改进的方向。

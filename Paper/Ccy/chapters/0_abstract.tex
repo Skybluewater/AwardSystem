@@ -1,0 +1,76 @@
+%%
+% The BIThesis Template for Bachelor Graduation Thesis
+%
+% 北京理工大学毕业设计（论文）中英文摘要 —— 使用 XeLaTeX 编译
+%
+% Copyright 2020 Spencer Woo
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+%
+% The Current Maintainer of this work is Spencer Woo.
+
+% 中英文摘要章节
+\zihao{-4}
+\vspace*{-11mm}
+
+\begin{center}
+  \heiti\zihao{-2}\textbf{\thesisTitle}
+\end{center}
+
+\vspace*{2mm}
+
+{\let\clearpage\relax \chapter*{\textmd{摘~~~~要}}}
+\addcontentsline{toc}{chapter}{摘~~~~要}
+\setcounter{page}{1}
+
+\vspace*{1mm}
+
+\setstretch{1.53}
+\setlength{\parskip}{0em}
+
+% 中文摘要正文从这里开始
+奖学金管理是教务管理系统中的重要组成部分，目前学校的奖学金推荐主要是使用经验公式进行。本文尝试使用机器学习方法对奖学金进行推荐，以期减小教务系统的压力，并在一定程度上作为奖学金颁发的依据。最终使用的机器学习模型在实验数据上取得了一定效果。
+
+本文主要分为4个组成部分，分别涵盖了实验过程中使用的算法或函数、数据仓储与数据导入、特征筛选和构建、使用多种算法进行训练、推荐与结果展示。其中最为重要的是特征筛选构建与模型训练部分。
+
+在实验过程中使用了多种不同的机器学习模型，包括朴素贝叶斯分类器、XGBoost决策树模型、DeepFM神经网络等，并进行了新的特征工程与模型融合。此项目实现过程大致形成了推荐系统整体搭建流程。
+
+\vspace{4ex}\noindent\textbf{\heiti 关键词：奖学金；机器学习；特征工程}
+\newpage
+
+% 英文摘要章节
+\vspace*{-2mm}
+
+\begin{spacing}{0.95}
+  \centering
+  \heiti\zihao{3}\textbf{\thesisTitleEN}
+\end{spacing}
+
+\vspace*{17mm}
+
+{\let\clearpage\relax \chapter*{
+  \zihao{-3}\textmd{Abstract}\vskip -3bp}}
+\addcontentsline{toc}{chapter}{Abstract}
+\setcounter{page}{2}
+
+\setstretch{1.53}
+\setlength{\parskip}{0em}
+
+% 英文摘要正文从这里开始
+Scholarship Management is an import part of the educational administration system. At present, the school's scholarship recommendation is mainly carried out by using empirical formulas.
+This article attempts to use machine learning methods to recommend scholarships in order to reduce the pressure on the educational administration system and to a certain extent serve as the basis for scholarship awards recommendation. The machine learning model finally used has achieved certain results on the experimental data.
+
+This article is mainly divided into 4 parts, covering the algorithms or functions used in the experiment, data warehousing and data importing, feature selection and engineering, and the use of multiple algorithms for training, recommendation and result display. The most important part is the feature selection and feature engineering as well as model training.
+
+During the experiment, a variety of different machine learning models were used, including naive Bayes classifier, XGBoost model, DeepFM neural network, etc., and new features formed by high-dimensional feature interaction and new model fusion method were carried out. The implementation process of this project roughly formed the overall forming and construction process of the recommendation system.
+
+\vspace{3ex}\noindent\textbf{Key Words: Scholarship Management； Machine Learning； Feature Engineering}
+\newpage

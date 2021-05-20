@@ -19,7 +19,7 @@
 %
 % 第一章节
 
-\chapter{特征构建与预处理}
+\chapter{数据预处理与特征构建}
 
 特征的选择与构建基本上是整个推荐系统的核心所在，也是这个项目中最为复杂的部分，在项目特征的选择上，我们进行了很多的探索，接下来将一一介绍我们的工作。
 
@@ -37,7 +37,7 @@
 
 \subsection{PCA/TSNE特征降维}
 
-聚类使用的主要方法均为无监督聚类，以典型的KMeans方法为例，我们首先对论文数据进行了清洗，并且保留了聚类所用到的两个特征--论文作者排序以及期刊（会议）等级，并且使用TSNE以及PCA两种方法对数据进行了主成分分析、降维以及可视化处理，同时我们使用了one-hot encoding以及label encoding两种方法将文字特征转化为数值特征，理论上而言期刊（会议）等级和作者排序均存在大小关系，所以我们构建的label encoding也是以高等级期刊、高作者排序对应数值低而进行，因此我们自主设定了排序等级，以期刊（会议）等级的label encoding为例，mapping如图\ref{paper-conference-label-encoding}所示：
+聚类使用的主要方法均为无监督聚类，以典型的KMeans方法为例，我们首先对论文数据进行了清洗，并且保留了聚类所用到的两个特征--论文作者排序以及期刊（会议）等级，并且使用TSNE\cite{van2008visualizing}以及PCA两种方法对数据进行了主成分分析、降维以及可视化处理，同时我们使用了one-hot encoding以及label encoding两种方法将文字特征转化为数值特征，理论上而言期刊（会议）等级和作者排序均存在大小关系，所以我们构建的label encoding也是以高等级期刊、高作者排序对应数值低而进行，因此我们自主设定了排序等级，以期刊（会议）等级的label encoding为例，mapping如图\ref{paper-conference-label-encoding}所示：
 \begin{figure}[htb]
     \vspace{6pt} % 调整图片与上文的垂直距离
     \centering
@@ -280,4 +280,14 @@
 
 在特征设计的过程中为了将one-hot后离散的稀疏特征进行降维可以选择多种方法，其中比较典型的方法为借用word2Vec的思想加入embedding层进行嵌入训练将特征转化为低维稠密且元素不为0的特征，或者通过决策树等方式对特征进行降维处理。我们在DeepFM中验证了前一种方法，并且使用了XGBoost验证了第二种方法。
 
+CSV构建过程中只含有两种标签，分别是硕士一等学业奖学金以及硕士其他等级奖学金，选择这两类奖学金是因为这两类在所有标签中
+数量最多。而且在CSV的标签选择中没有选择国家奖学金的理由是部分国家奖学金的数据和硕士学业奖学金重复，因为数据缺少时间特征所以无法区分哪些是申请国家奖学金所用的成果哪些是硕士学业奖学金的申请成果，在未来可以将其他更具体的奖学金加入其中实现Top-N推荐的功能。
+\begin{figure}[htb]
+    \vspace{6pt} % 调整图片与上文的垂直距离
+    \centering
+    \includegraphics[width=0.95\linewidth]{images/Generated-csv.png}
+    \caption{生成csv}\label{generated_csv} % label 用来在文中索引
+\end{figure}
+
+最终生成的csv如\ref{generated_csv}图所示。在上述CSV中可以看到在CSV生成以及读取后很多数据列都变成了Double浮点类，在CSV保存过程以及对应读取过程中应当注意将这些列改为Int型变量，优点是减小误差，其次更改数据类型能提高训练速度并节省内存。
 % 这里插入一个参考文献，仅作参考
